@@ -37,9 +37,11 @@ def binary_search_for_error(start, end):
         print(f"測試價格：{mid}, 總額：{total}, 折扣：{discount}")
         if is_result_correct(mid, total, discount):
             print("結果正確，向右搜尋")
+            print("--------------------")
             start = mid + 1  # 結果正確，向右搜尋
         else:
             print("結果錯誤，向左搜尋")
+            print("--------------------")
             end = mid - 1  # 結果錯誤，向左搜尋
     return start
 
@@ -59,10 +61,12 @@ def main_test_flow():
             print(f"測試價格：{price}, 總額：{total}, 折扣：{discount}")
             if is_result_correct(price, total, discount):
                 print("結果正確，向前恢復")
+                print("--------------------")
                 error_start = price + offset  # 向前恢復到錯誤出現的位置
                 break
             else:
                 print("結果錯誤，繼續搜尋")
+                print("--------------------")
                 error_start -= offset  # 繼續向後搜尋
 
     # 檢查連續三個點是否都出現錯誤
