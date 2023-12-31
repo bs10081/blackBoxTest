@@ -10,49 +10,70 @@ api_url = "https://d.systemdynamics.tw/blackbox.php"
 
 
 def test_order(price):
-    # 重置訂單資料
     session.post(api_url, data={'act': 'reset'})
-
-    # 增加商品
     session.post(api_url, data={'act': 'addItem',
                  'name': 'testProduct', 'price': price})
-
-    # 獲取訂單總額
     total_response = session.post(api_url, data={'act': 'getTotal'})
-    total = total_response.text if total_response.status_code == 200 else "Error"
-
-    # 獲取折扣金額
     discount_response = session.post(api_url, data={'act': 'getDiscount'})
-    discount = discount_response.text if discount_response.status_code == 200 else "Error"
+    return total_response.text, discount_response.text
 
-    return total, discount
+# 判斷結果是否正確
 
-# 主測試流程：測試價格從 10000 到 1000000
+
+def is_result_correct(price, total, discount):
+    expected_discount = min(10000, price // 1000 * 100)
+    if price >= 5000:
+        expected_discount += 100
+    return total == str(price) and discount == str(expected_discount)
+
+# 二分搜尋法找到錯誤出現的起始點
+
+
+def binary_search_for_error(start, end):
+    print(f"開始二分搜尋，範圍 {start} 到 {end}")
+    while start <= end:
+        mid = (start + end) // 2
+        total, discount = test_order(mid)
+        print(f"測試價格：{mid}, 總額：{total}, 折扣：{discount}")
+        if is_result_correct(mid, total, discount):
+            print("結果正確，向右搜尋")
+            start = mid + 1  # 結果正確，向右搜尋
+        else:
+            print("結果錯誤，向左搜尋")
+            end = mid - 1  # 結果錯誤，向左搜尋
+    return start
+
+# 主測試流程
 
 
 def main_test_flow():
-    error_count = 0
-    for price in range(10000, 1000001):
-        total, discount = test_order(price)
+    # 使用二分搜尋法找到錯誤開始出現的位置
+    error_start = binary_search_for_error(10000, 1000000)
 
-        # 計算預期的總額和折扣
-        expected_discount = min(10000, price // 1000 * 100)
-        if price >= 5000:
-            expected_discount += 100
-
-        # 檢查總額和折扣是否正確
-        if total != str(price) or discount != str(expected_discount):
-            error_count += 1
-            print(
-                f"出現問題的價格：{price}, 總額：{total}, 折扣：{discount}, 預期折扣：{expected_discount}")
-
-            # 如果連續三次出現錯誤，停止測試
-            if error_count >= 3:
-                print("連續三次出現問題，停止測試。")
+    # 從找到的點開始進行細粒度搜索
+    for offset in [1000, 100, 10, 1]:
+        print(f"開始細粒度搜索，當前偏移量：{offset}")
+        while True:
+            price = error_start - offset
+            total, discount = test_order(price)
+            print(f"測試價格：{price}, 總額：{total}, 折扣：{discount}")
+            if is_result_correct(price, total, discount):
+                print("結果正確，向前恢復")
+                error_start = price + offset  # 向前恢復到錯誤出現的位置
                 break
-        else:
-            print(f"測試通過：{price}, 總額：{total}, 折扣：{discount}")
-            error_count = 0  # 重置錯誤計數器
+            else:
+                print("結果錯誤，繼續搜尋")
+                error_start -= offset  # 繼續向後搜尋
+
+    # 檢查連續三個點是否都出現錯誤
+    print(f"檢查連續三個點，從價格 {error_start}")
+    consecutive_errors = all(not is_result_correct(
+        price, *test_order(price)) for price in range(error_start, error_start + 3))
+    if consecutive_errors:
+        print(
+            f"連續三次錯誤出現在價格：{error_start}, {error_start + 1}, {error_start + 2}")
+    else:
+        print("未找到連續三次錯誤的價格點。")
 
 
 # 執行測試
