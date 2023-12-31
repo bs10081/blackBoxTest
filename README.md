@@ -14,7 +14,7 @@
 1. 確保您的環境中已安裝Python 3。
 2. 安裝必要的Python庫，如requests：
    ```sh
-   pip install requests
+   pip install requests prettytable string random
    ```
 3. 運行任一測試腳本：
    ```sh
