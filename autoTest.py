@@ -72,7 +72,7 @@ def generate_random_price(max_price=26000):
 
 def interactive_mode():
     while True:
-        action = input("請選擇操作：1-重置訂單，2-增加商品，3-獲取總額，4-獲取折扣，0-退出：")
+        action = input("請選擇操作：1-重置訂單，2-增加商品，3-獲取總額，4-獲取折扣，0-運行：")
         if action == '1':
             test_reset()
         elif action == '2':
